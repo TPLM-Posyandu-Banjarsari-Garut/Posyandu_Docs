@@ -3,6 +3,7 @@
 Dokumentasi ini merangkum cara kerja dan pengembangan dua repositori aplikasi:
 
 - [Posyandu Web Server](./Posyandu_Web_Server.md)
+- [Panduan deployment server](./Posyandu_Web_Server/DEPLOYMENT.md)
 - [Posyandu Web Client](./Posyandu_Web_Client.md)
 - [Catatan arsitektur dan infrastruktur](./ARSITEKTUR_DAN_INFRASTRUKTUR.md)
 - [Functional requirement baseline](./FUNCTIONAL_REQUIREMENTS.md)
@@ -27,12 +28,12 @@ Client meneruskan request `/api/*` ke server melalui middleware Next.js. Server 
 
 ## Peta integrasi
 
-| Bagian | Server | Client |
-| --- | --- | --- |
-| API HTTP | `/api/*`, didaftarkan di `src/routes/index-routes.ts` | Request melalui `service/` dan proxy di `middleware.ts` |
-| Autentikasi | Better Auth, session cookie, endpoint `/api/auth/*` | Halaman login per role, pemeriksaan session, logout |
-| Perubahan data | Token CSRF pada endpoint `/api/csrf-token` | Axios menambahkan `X-CSRF-Token` untuk request mutasi |
-| Notifikasi | WebSocket `/ws` dan Web Push | Provider notifikasi, hook WebSocket, dan service worker PWA |
-| Kontrak API | Swagger UI pada `/api/docs`, OpenAPI JSON pada `/api/docs/openapi.json` | Tipe data pada `interfaces/` dan service API per modul |
+| Bagian         | Server                                                                  | Client                                                      |
+| -------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------- |
+| API HTTP       | `/api/*`, didaftarkan di `src/routes/index-routes.ts`                   | Request melalui `service/` dan proxy di `middleware.ts`     |
+| Autentikasi    | Better Auth, session cookie, endpoint `/api/auth/*`                     | Halaman login per role, pemeriksaan session, logout         |
+| Perubahan data | Token CSRF pada endpoint `/api/csrf-token`                              | Axios menambahkan `X-CSRF-Token` untuk request mutasi       |
+| Notifikasi     | WebSocket `/ws` dan Web Push                                            | Provider notifikasi, hook WebSocket, dan service worker PWA |
+| Kontrak API    | Swagger UI pada `/api/docs`, OpenAPI JSON pada `/api/docs/openapi.json` | Tipe data pada `interfaces/` dan service API per modul      |
 
 Dokumentasi API yang dihasilkan server menjadi rujukan untuk path, parameter, dan bentuk request/response. Dokumen ini menjelaskan susunan proyek dan alur kerja lokal.

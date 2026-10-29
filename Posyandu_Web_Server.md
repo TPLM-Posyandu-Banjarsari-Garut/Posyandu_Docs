@@ -4,6 +4,8 @@ Server menyediakan API untuk autentikasi dan operasional Posyandu Banjarsari. Pr
 
 Daftar fungsi yang terlihat pada API dan client dirangkum pada [functional requirement baseline](./FUNCTIONAL_REQUIREMENTS.md).
 
+Untuk persiapan rilis, secret production, migrasi database, dan pemeriksaan pascadeploy, ikuti [panduan deployment server](./Posyandu_Web_Server/DEPLOYMENT.md).
+
 ## Struktur dan alur request
 
 `src/server.ts` memuat konfigurasi, memulai listener HTTP, lalu memasang WebSocket pada server yang sama. `src/app.ts` menyiapkan middleware keamanan, logging, autentikasi, dokumentasi API, routing, dan penanganan error.
@@ -50,16 +52,16 @@ make dc-up INFISICAL_ENV=dev
 
 Perintah proyek lainnya:
 
-| Perintah | Kegunaan |
-| --- | --- |
-| `bun run build` atau `make build` | Mengompilasi TypeScript ke `dist/` |
-| `bun run start` atau `make start` | Menjalankan hasil build; `make start` memuat secret Infisical |
-| `bun run typecheck` atau `make typecheck` | Memeriksa tipe TypeScript |
-| `bun run lint:check` atau `make lint` | Menjalankan ESLint |
-| `make db-gen` | Membuat migrasi Drizzle dari perubahan skema |
-| `make db-mig INFISICAL_ENV=dev` | Menjalankan migrasi pada database dari environment yang dipilih |
-| `make db-studio INFISICAL_ENV=dev` | Membuka Drizzle Studio |
-| `bun run db:seed` | Mengisi data awal vaksin dan vitamin |
+| Perintah                                  | Kegunaan                                                        |
+| ----------------------------------------- | --------------------------------------------------------------- |
+| `bun run build` atau `make build`         | Mengompilasi TypeScript ke `dist/`                              |
+| `bun run start` atau `make start`         | Menjalankan hasil build; `make start` memuat secret Infisical   |
+| `bun run typecheck` atau `make typecheck` | Memeriksa tipe TypeScript                                       |
+| `bun run lint:check` atau `make lint`     | Menjalankan ESLint                                              |
+| `make db-gen`                             | Membuat migrasi Drizzle dari perubahan skema                    |
+| `make db-mig INFISICAL_ENV=dev`           | Menjalankan migrasi pada database dari environment yang dipilih |
+| `make db-studio INFISICAL_ENV=dev`        | Membuka Drizzle Studio                                          |
+| `bun run db:seed`                         | Mengisi data awal vaksin dan vitamin                            |
 
 Gunakan `make help` untuk melihat target Makefile yang tersedia.
 
@@ -69,19 +71,19 @@ Gunakan `make help` untuk melihat target Makefile yang tersedia.
 
 Kelompok variabel yang diperlukan:
 
-| Kelompok | Variabel |
-| --- | --- |
-| Aplikasi dan jaringan | `NODE_ENV`, `PORT`, `LOG_LEVEL`, `CORS_ORIGIN`, `TRUSTED_ORIGINS` |
-| Database | `DATABASE_URL`; pool opsional: `DB_POOL_MAX`, `DB_POOL_IDLE_TIMEOUT_MS`, `DB_POOL_CONNECTION_TIMEOUT_MS` |
-| Session dan login | `DATA_ENCRYPTION_KEY`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` |
-| Email dan informasi kontak | `RESEND_API_KEY`, `SENDER_EMAIL`, `CONTACT_NAME`, `CONTACT_WHATSAPP`, `CONTACT_EMAIL` |
-| Pembatasan request | `RATE_LIMIT_GLOBAL_*`, `RATE_LIMIT_AUTH_*`, `RATE_LIMIT_SIGNIN_*`, `RATE_LIMIT_SIGNUP_*`, `RATE_LIMIT_OTP_REQ_*`, `RATE_LIMIT_OTP_VERIFY_*`, `RATE_LIMIT_RESET_PWD_*`, `RATE_LIMIT_DELETE_ACC_*`, `RATE_LIMIT_CHANGE_PWD_*`, `RATE_LIMIT_MEDIA_UPLOAD_*`; setiap kelompok memakai akhiran `WINDOW_MINUTES` dan `MAX` |
-| Penyimpanan media | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `MEDIA_UPLOAD_MAX_SIZE_MB`, `MEDIA_UPLOAD_MAX_RAW_SIZE_MB`, `MEDIA_UPLOAD_ALLOWED_EXTENSIONS`; `R2_PUBLIC_URL` opsional |
-| Cloudflare KV cache | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_KV_NAMESPACE_ID` |
-| Session dan pekerjaan terjadwal | `CRON_SECRET`, `SESSION_EXPIRES_IN`, `SESSION_UPDATE_AGE`, `SESSION_COOKIE_CACHE_ENABLED`, `SESSION_COOKIE_CACHE_MAX_AGE` |
-| Integrasi opsional | Redis untuk Better Auth dan limiter: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `UPSTASH_REDIS_URL`; CAPTCHA: `TURNSTILE_SECRET_KEY`; CSRF: `CSRF_SECRET`; Web Push: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` |
+| Kelompok                        | Variabel                                                                                                                                                                                                                                                                                                             |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Aplikasi dan jaringan           | `NODE_ENV`, `PORT`, `LOG_LEVEL`, `CORS_ORIGIN`, `TRUSTED_ORIGINS`                                                                                                                                                                                                                                                    |
+| Database                        | `DATABASE_URL`; pool opsional: `DB_POOL_MAX`, `DB_POOL_IDLE_TIMEOUT_MS`, `DB_POOL_CONNECTION_TIMEOUT_MS`                                                                                                                                                                                                             |
+| Session dan login               | `DATA_ENCRYPTION_KEY`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`                                                                                                                                                                                                           |
+| Email dan informasi kontak      | `RESEND_API_KEY`, `SENDER_EMAIL`, `CONTACT_NAME`, `CONTACT_WHATSAPP`, `CONTACT_EMAIL`                                                                                                                                                                                                                                |
+| Pembatasan request              | `RATE_LIMIT_GLOBAL_*`, `RATE_LIMIT_AUTH_*`, `RATE_LIMIT_SIGNIN_*`, `RATE_LIMIT_SIGNUP_*`, `RATE_LIMIT_OTP_REQ_*`, `RATE_LIMIT_OTP_VERIFY_*`, `RATE_LIMIT_RESET_PWD_*`, `RATE_LIMIT_DELETE_ACC_*`, `RATE_LIMIT_CHANGE_PWD_*`, `RATE_LIMIT_MEDIA_UPLOAD_*`; setiap kelompok memakai akhiran `WINDOW_MINUTES` dan `MAX` |
+| Penyimpanan media               | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `MEDIA_UPLOAD_MAX_SIZE_MB`, `MEDIA_UPLOAD_MAX_RAW_SIZE_MB`, `MEDIA_UPLOAD_ALLOWED_EXTENSIONS`; `R2_PUBLIC_URL` opsional                                                                                                               |
+| Cloudflare KV cache             | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_KV_NAMESPACE_ID`                                                                                                                                                                                                                                        |
+| Session dan pekerjaan terjadwal | `CRON_SECRET`, `SESSION_EXPIRES_IN`, `SESSION_UPDATE_AGE`, `SESSION_COOKIE_CACHE_ENABLED`, `SESSION_COOKIE_CACHE_MAX_AGE`                                                                                                                                                                                            |
+| Integrasi opsional              | Redis untuk Better Auth dan limiter: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `UPSTASH_REDIS_URL`; CAPTCHA: `TURNSTILE_SECRET_KEY`; CSRF: `CSRF_SECRET`; Web Push: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`                                                                             |
 
-Pool PostgreSQL, Redis, CAPTCHA, CSRF, URL publik R2, dan Web Push memiliki nilai opsional atau default di kode. Untuk deployment, tetapkan nilai yang sesuai environment secara eksplisit. `DATA_ENCRYPTION_KEY` harus mewakili 32 byte dan diperlukan untuk membaca kolom terenkripsi. Simpan key ini di pengelola secret dan buat backup terpisah.
+Pool PostgreSQL, Redis, CAPTCHA, CSRF, URL publik R2, dan Web Push memiliki nilai opsional atau default di kode. Untuk deployment, tetapkan nilai yang sesuai environment secara eksplisit. Cloudflare KV memerlukan ketiga credential agar cache lintas proses aktif; bila credential kosong atau tidak lengkap, cache memakai fallback memori lokal. Upstash Redis digunakan untuk Better Auth secondary storage dan rate limiter. Tanpa Redis, secondary storage Redis dinonaktifkan dan rate limiter memakai store memori proses; data utama Better Auth tetap disimpan di PostgreSQL. `DATA_ENCRYPTION_KEY` harus mewakili 32 byte dan diperlukan untuk membaca kolom terenkripsi. Simpan key ini di pengelola secret dan buat backup terpisah.
 
 Untuk koneksi database dari host, gunakan hostname yang dapat dijangkau dari host, biasanya `localhost`. Dalam Compose, aplikasi memakai hostname service `postgres`; `DATABASE_URL` Compose dibentuk dari `DATABASE_USER`, `DATABASE_PASSWORD`, dan `DATABASE_NAME`. Pastikan environment yang dipilih memang menunjuk ke database lokal sebelum menjalankan migrasi.
 
@@ -89,28 +91,27 @@ Untuk koneksi database dari host, gunakan hostname yang dapat dijangkau dari hos
 
 Semua rute bisnis menggunakan prefix `/api`. Daftar prefix terpasang di `src/routes/index-routes.ts`.
 
-| Prefix | Fitur |
-| --- | --- |
-| `/api/health` | Health check proses dan kesiapan database |
-| `/api/users`, `/api/parents`, `/api/cadres`, `/api/midwifes` | Pengguna dan profil peran |
-| `/api/posyandus` | Data Posyandu |
-| `/api/childrens`, `/api/pregnancy-records` | Data anak dan catatan kehamilan |
-| `/api/examinations`, `/api/examination-schedules`, `/api/examination-records` | Layanan dan jadwal pemeriksaan |
-| `/api/vaccines`, `/api/immunization-records`, `/api/kipi-details` | Vaksin, imunisasi, dan KIPI |
-| `/api/vitamins`, `/api/vitamin-records`, `/api/nutrition-records` | Vitamin, catatan pemberian, dan gizi |
-| `/api/consultations` | Konsultasi dan antrean layanan |
-| `/api/inventories` | Inventaris |
-| `/api/education-categories`, `/api/educations` | Kategori dan materi edukasi |
-| `/api/notifications`, `/api/push-subscriptions` | Notifikasi aplikasi dan langganan Web Push |
-| `/api/medias` | Unggah dan pengelolaan media |
-| `/api/trash` | Pengelolaan data terhapus |
-| `/api/cron` | Pemicu pekerjaan terjadwal |
+| Prefix                                                                        | Fitur                                      |
+| ----------------------------------------------------------------------------- | ------------------------------------------ |
+| `/api/health/live`, `/api/health/ready`                                       | Liveness proses dan readiness database     |
+| `/api/users`, `/api/parents`, `/api/cadres`, `/api/midwifes`                  | Pengguna dan profil peran                  |
+| `/api/posyandus`                                                              | Data Posyandu                              |
+| `/api/childrens`, `/api/pregnancy-records`                                    | Data anak dan catatan kehamilan            |
+| `/api/examinations`, `/api/examination-schedules`, `/api/examination-records` | Layanan dan jadwal pemeriksaan             |
+| `/api/vaccines`, `/api/immunization-records`, `/api/kipi-details`             | Vaksin, imunisasi, dan KIPI                |
+| `/api/vitamins`, `/api/vitamin-records`, `/api/nutrition-records`             | Vitamin, catatan pemberian, dan gizi       |
+| `/api/consultations`                                                          | Konsultasi dan antrean layanan             |
+| `/api/inventories`                                                            | Inventaris                                 |
+| `/api/education-categories`, `/api/educations`                                | Kategori dan materi edukasi                |
+| `/api/notifications`, `/api/push-subscriptions`                               | Notifikasi aplikasi dan langganan Web Push |
+| `/api/medias`                                                                 | Unggah dan pengelolaan media               |
+| `/api/trash`                                                                  | Pengelolaan data terhapus                  |
+| `/api/cron`                                                                   | Pemicu pekerjaan terjadwal                 |
 
 Endpoint pemeriksaan kesehatan:
 
-- `GET /api/health` memberikan ringkasan status server.
 - `GET /api/health/live` memeriksa apakah proses merespons.
-- `GET /api/health/ready` memeriksa koneksi database dan mengembalikan `503` bila database belum siap.
+- `GET /api/health/ready` memeriksa koneksi database dan mengembalikan `503` bila database belum siap. Compose menggunakan endpoint ini untuk health check aplikasi.
 
 Swagger UI tersedia di `/api/docs`, sedangkan dokumen OpenAPI JSON tersedia di `/api/docs/openapi.json`. Spesifikasi berasal dari `src/docs/`; gunakan itu untuk melihat method, parameter, skema, dan aturan autentikasi setiap endpoint.
 

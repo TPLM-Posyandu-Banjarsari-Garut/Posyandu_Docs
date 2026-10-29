@@ -27,22 +27,20 @@ Server membuka HTTP API dan WebSocket pada listener yang sama. PostgreSQL menyim
 
 ## Infrastruktur yang didefinisikan repo
 
-| Area | Kondisi saat ini |
-| --- | --- |
-| Runtime server | Bun 1.4.4, Express 5, TypeScript. HTTP API dan WebSocket `/ws` berjalan dalam satu proses server. |
-| Runtime client | Bun 1.4.4, Next.js 16.4.3, React 19.3.1. Skrip development memakai port `3001`. |
-| Database lokal | Podman Compose menjalankan `postgres:18-alpine`, volume persisten, dan health check `pg_isready`. Port PostgreSQL hanya dipublikasikan ke `127.0.0.1`. |
-| Container server | `dockerfile` memiliki tahap dependency, development, build, dan production. Image production menjalankan proses sebagai user non-root. |
-| Compose aplikasi | Konfigurasi dipisah di `docker/compose/`: `base.yml`, `development.yml`, dan `production.yml`. Makefile menyediakan target stack development dan production. |
-| Object storage | Server memakai AWS S3 SDK dengan endpoint Cloudflare R2. Database menyimpan metadata dan key file. |
-| Cache dan rate limit | Cloudflare KV dipakai untuk cache-aside daftar vaksin, vitamin, template pemeriksaan, konten edukasi, kategori, Posyandu, dan ketersediaan slot. Redis tetap dipakai Better Auth secondary storage dan limiter Express. |
-| Email dan autentikasi | Resend mengirim OTP dan email akun. Better Auth memakai PostgreSQL, cookie session, OTP email, dan Google OAuth. |
-| Secret server | Makefile membungkus perintah dengan Infisical. `.infisical.json` dan Makefile saat ini memakai environment default `dev`; production perlu environment terpisah. |
-| Client deployment | Repo memuat konfigurasi Next.js/PWA dan skrip build, tetapi tidak memuat Dockerfile, workflow CI, atau manifest deployment client. |
+| Area                  | Kondisi saat ini                                                                                                                                                                                                                    |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Runtime server        | Bun 1.4.4, Express 5, TypeScript. HTTP API dan WebSocket `/ws` berjalan dalam satu proses server.                                                                                                                                   |
+| Runtime client        | Bun 1.4.4, Next.js 16.4.3, React 19.3.1. Skrip development memakai port `3001`.                                                                                                                                                     |
+| Database Compose      | Podman Compose menjalankan `postgres:18-alpine`, volume persisten, dan health check `pg_isready`. Port PostgreSQL hanya dipublikasikan ke `127.0.0.1`. Konfigurasi production saat ini juga memakai PostgreSQL pada host yang sama. |
+| Container server      | `dockerfile` memiliki tahap dependency, development, build, dan production. Image production menjalankan proses sebagai user non-root.                                                                                              |
+| Compose aplikasi      | Konfigurasi dipisah di `docker/compose/`: `base.yml`, `development.yml`, dan `production.yml`. Makefile menyediakan target stack development dan production.                                                                        |
+| Object storage        | Server memakai AWS S3 SDK dengan endpoint Cloudflare R2. Database menyimpan metadata dan key file.                                                                                                                                  |
+| Cache dan rate limit  | Cloudflare KV dipakai untuk cache-aside daftar vaksin, vitamin, template pemeriksaan, konten edukasi, kategori, Posyandu, dan ketersediaan slot. Redis tetap dipakai Better Auth secondary storage dan limiter Express.             |
+| Email dan autentikasi | Resend mengirim OTP dan email akun. Better Auth memakai PostgreSQL, cookie session, OTP email, dan Google OAuth.                                                                                                                    |
+| Secret server         | Makefile membungkus perintah dengan Infisical. Target development memakai environment `dev`, sedangkan target production memakai `prod`.                                                                                            |
+| Client deployment     | Repo memuat konfigurasi Next.js/PWA dan skrip build, tetapi tidak memuat Dockerfile, workflow CI, atau manifest deployment client.                                                                                                  |
 
-Server menyediakan skrip `vercel-build`, tetapi repositori tidak mendeklarasikan konfigurasi deployment Vercel. Workflow GitHub Actions server yang ada hanya `ci.yml`; workflow tersebut menjalankan typecheck, lint, format check, dan build pada push ke `main` serta pull request ke `main`/`dev`. Repo tidak memiliki workflow deploy.
-
-README server menyebut workflow CT `.github/workflows/ct.yml`, tetapi file itu tidak ada di repo saat ini. Workflow CI yang ada juga tidak menjalankan test. Catat hal ini saat menilai status pipeline.
+Workflow GitHub Actions server yang ada hanya `.github/workflows/ci.yml`. Workflow berjalan pada push ke `main` dan pull request ke `main`/`dev`, serta hanya menjalankan unit test. Build image dan deployment tidak dijalankan otomatis oleh CI. Hook lokal pre-commit menjalankan format, lint, dan typecheck; pre-push menjalankan build dan unit test.
 
 ## Alur autentikasi dan data
 
@@ -68,13 +66,14 @@ Konsekuensinya, beberapa instance client atau server dapat memiliki cache dan ko
 
 Pada implementasi WebSocket saat ini, client mengirim `user_id` melalui pesan `auth`, lalu server memakai nilai itu untuk memilih penerima notifikasi. Handler koneksi WebSocket tidak memvalidasi session cookie/token sebelum mempercayai ID tersebut. Anggap ini sebagai batas autentikasi yang perlu ditinjau sebelum WebSocket dijadikan kanal notifikasi privat.
 
-## Ketidaksesuaian yang terlihat di konfigurasi
+## Status deployment dan batasan
 
-- Dockerfile production memeriksa `GET /health`, sedangkan aplikasi mendaftarkan health check di `/api/health`. Path health check container perlu disamakan sebelum image production dipakai.
-- Compose memetakan `${PORT:-3000}` di host ke port container `3000`, sekaligus meneruskan `PORT` ke proses. Jika `PORT` di dalam container bukan `3000`, proses dapat mendengarkan port yang berbeda dari target mapping.
-- Konfigurasi Compose yang aktif menjalankan `app-dev`; service production masih dikomentari. Jalur deployment server production belum dijelaskan sebagai konfigurasi runnable di repo.
+- Compose menjalankan aplikasi pada port internal `3000`; `APP_HOST_PORT` hanya mengubah port yang dibuka pada host. Health check aplikasi memakai `GET /api/health/ready`.
+- Target production Makefile memakai Infisical environment `prod`. Jalankan PostgreSQL terlebih dahulu, jalankan migrasi dari host dengan `DATABASE_URL` yang dapat dijangkau host, lalu mulai aplikasi. Rincian perintah ada di [panduan deployment server](./Posyandu_Web_Server/DEPLOYMENT.md).
+- Compose production yang tersedia masih mengelola PostgreSQL pada host yang sama. Koneksi ke managed PostgreSQL memerlukan konfigurasi Compose terpisah karena konfigurasi saat ini membentuk URL internal ke service `postgres`.
+- Image production tidak menyertakan folder migrasi; migrasi dijalankan dari checkout repository pada host menggunakan Bun dan secret Infisical.
+- Repo tidak menyediakan backup/restore PostgreSQL otomatis, reverse proxy/TLS, provisioning layanan Cloudflare, atau workflow deployment. Tim operasional perlu menyiapkan dan menguji bagian tersebut.
 - Middleware client memakai `http://localhost:3000` sebagai fallback saat development dan host API production saat runtime non-development. `next.config.ts` juga memakai host API production sebagai fallback untuk CSP. Untuk domain berbeda, isi `NEXT_PUBLIC_API_URL` dan samakan konfigurasi CORS, Better Auth trusted origins, WebSocket, serta CSP.
-- Repo tidak mendefinisikan provisioning production PostgreSQL, backup/restore otomatis, atau deployment client. Detail hosting dan ketersediaan layanan produksi perlu dikonfirmasi di lingkungan operasional.
 
 ## Kunci enkripsi dan data
 
